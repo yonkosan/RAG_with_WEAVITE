@@ -1,0 +1,8 @@
+# weaviate-client
+# openai
+# pdfminer.six
+# python-docx
+
+flask
+weaviate-client
+werkzeug

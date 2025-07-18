@@ -1,8 +1,43 @@
-# weaviate-client
-# openai
-# pdfminer.six
-# python-docx
+# Core FastAPI and web framework
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+python-multipart==0.0.6
+jinja2==3.1.2
+aiofiles==23.2.1
 
-flask
-weaviate-client
-werkzeug
+# Database
+sqlalchemy==2.0.23
+asyncpg==0.29.0
+alembic==1.13.1
+psycopg2-binary==2.9.9
+
+# Authentication & Security
+python-jose[cryptography]==3.3.0
+passlib[bcrypt]==1.7.4
+python-decouple==3.8
+
+# File Processing
+pypdf2==3.0.1
+python-docx==1.1.0
+pillow==10.1.0
+opencv-python==4.8.1.78
+pytesseract==0.3.10
+pandas==2.1.4
+openpyxl==3.1.2
+pdfplumber==0.10.3
+
+# Vector Database & Embeddings
+pgvector==0.2.4
+sentence-transformers==2.2.2
+transformers==4.36.2
+torch==2.1.2
+
+# LLM Integration
+openai==1.6.1
+langchain==0.0.348
+langchain-openai==0.0.2
+
+# Utilities
+python-magic==0.4.27
+httpx==0.25.2
+pydantic[email]==2.5.2

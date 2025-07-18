@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+
+{% block title %}Home - RAG Application{% endblock %}
+
+{% block content %}
+<div class="text-center">
+    <div class="hero-section py-5">
+        <h1 class="display-4 fw-bold text-primary mb-4">
+            <i class="bi bi-search"></i> RAG Application
+        </h1>
+        <p class="lead mb-5">
+            Upload your documents and ask questions. Get intelligent answers powered by AI.
+        </p>
+        
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="row g-4">
+                    <div class="col-md-4">
+                        <div class="card h-100 text-center">
+                            <div class="card-body">
+                                <i class="bi bi-cloud-upload fs-1 text-primary mb-3"></i>
+                                <h5 class="card-title">Upload Documents</h5>
+                                <p class="card-text">
+                                    Support for PDF, DOCX, images, Excel files, and more.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-4">
+                        <div class="card h-100 text-center">
+                            <div class="card-body">
+                                <i class="bi bi-cpu fs-1 text-primary mb-3"></i>
+                                <h5 class="card-title">AI Processing</h5>
+                                <p class="card-text">
+                                    Advanced text extraction, OCR, and vector embeddings.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-4">
+                        <div class="card h-100 text-center">
+                            <div class="card-body">
+                                <i class="bi bi-chat-dots fs-1 text-primary mb-3"></i>
+                                <h5 class="card-title">Ask Questions</h5>
+                                <p class="card-text">
+                                    Get intelligent answers based on your document content.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="mt-5">
+            <a href="/auth/register" class="btn btn-primary btn-lg me-3">
+                <i class="bi bi-person-plus"></i> Get Started
+            </a>
+            <a href="/auth/login" class="btn btn-outline-primary btn-lg">
+                <i class="bi bi-box-arrow-in-right"></i> Login
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-5">
+    <div class="col-md-6">
+        <h3><i class="bi bi-check-circle text-success"></i> Features</h3>
+        <ul class="list-unstyled">
+            <li class="mb-2"><i class="bi bi-check text-success"></i> Support for multiple file formats</li>
+            <li class="mb-2"><i class="bi bi-check text-success"></i> Advanced OCR for images</li>
+            <li class="mb-2"><i class="bi bi-check text-success"></i> Table extraction from PDFs and DOCX</li>
+            <li class="mb-2"><i class="bi bi-check text-success"></i> Vector similarity search</li>
+            <li class="mb-2"><i class="bi bi-check text-success"></i> User authentication and authorization</li>
+            <li class="mb-2"><i class="bi bi-check text-success"></i> Query history tracking</li>
+        </ul>
+    </div>
+    
+    <div class="col-md-6">
+        <h3><i class="bi bi-file-earmark text-primary"></i> Supported File Types</h3>
+        <div class="row">
+            <div class="col-6">
+                <ul class="list-unstyled">
+                    <li><i class="bi bi-file-pdf text-danger"></i> PDF</li>
+                    <li><i class="bi bi-file-word text-primary"></i> DOCX/DOC</li>
+                    <li><i class="bi bi-file-text text-secondary"></i> TXT</li>
+                    <li><i class="bi bi-file-spreadsheet text-success"></i> XLSX/CSV</li>
+                </ul>
+            </div>
+            <div class="col-6">
+                <ul class="list-unstyled">
+                    <li><i class="bi bi-file-image text-info"></i> JPG/PNG</li>
+                    <li><i class="bi bi-file-code text-warning"></i> JSON</li>
+                    <li><i class="bi bi-file-binary text-dark"></i> TIFF/BMP</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

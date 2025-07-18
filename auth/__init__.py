@@ -1,0 +1,1 @@
+# Authentication module for the RAG application

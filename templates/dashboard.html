@@ -1,0 +1,281 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - RAG Application{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="bi bi-speedometer2"></i> Dashboard</h2>
+    <span class="text-muted">Welcome back, {{ user.username }}!</span>
+</div>
+
+<!-- Statistics Cards -->
+<div class="row mb-4" id="statsContainer">
+    <div class="col-md-3">
+        <div class="card bg-primary text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6 class="card-title">Total Documents</h6>
+                        <h3 id="totalDocuments">-</h3>
+                    </div>
+                    <i class="bi bi-files fs-1 opacity-50"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card bg-success text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6 class="card-title">Processed</h6>
+                        <h3 id="processedDocuments">-</h3>
+                    </div>
+                    <i class="bi bi-check-circle fs-1 opacity-50"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card bg-info text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6 class="card-title">Text Chunks</h6>
+                        <h3 id="totalChunks">-</h3>
+                    </div>
+                    <i class="bi bi-puzzle fs-1 opacity-50"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card bg-warning text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6 class="card-title">Total Queries</h6>
+                        <h3 id="totalQueries">-</h3>
+                    </div>
+                    <i class="bi bi-chat-dots fs-1 opacity-50"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="bi bi-lightning"></i> Quick Actions</h5>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-6">
+                        <a href="/files/upload" class="btn btn-outline-primary w-100">
+                            <i class="bi bi-cloud-upload"></i><br>
+                            Upload Files
+                        </a>
+                    </div>
+                    <div class="col-6">
+                        <a href="/rag/search" class="btn btn-outline-success w-100">
+                            <i class="bi bi-search"></i><br>
+                            Search Documents
+                        </a>
+                    </div>
+                    <div class="col-6">
+                        <a href="/files/documents" class="btn btn-outline-info w-100">
+                            <i class="bi bi-files"></i><br>
+                            My Documents
+                        </a>
+                    </div>
+                    <div class="col-6">
+                        <a href="/rag/history" class="btn btn-outline-warning w-100">
+                            <i class="bi bi-clock-history"></i><br>
+                            Query History
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="bi bi-graph-up"></i> System Status</h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <small class="text-muted">Document Processing</small>
+                    <div class="progress">
+                        <div class="progress-bar bg-success" role="progressbar" style="width: 100%" id="processingProgress">
+                            Ready
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <small class="text-muted">Storage Usage</small>
+                    <div class="progress">
+                        <div class="progress-bar bg-info" role="progressbar" style="width: 25%">
+                            25% Used
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <small class="text-muted">AI Services</small>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span>Embeddings</span>
+                        <span class="badge bg-success">Online</span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span>LLM Service</span>
+                        <span class="badge bg-success" id="llmStatus">Online</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Documents -->
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5><i class="bi bi-clock"></i> Recent Documents</h5>
+        <a href="/files/documents" class="btn btn-sm btn-outline-primary">View All</a>
+    </div>
+    <div class="card-body">
+        <div id="recentDocuments">
+            <div class="text-center py-4">
+                <div class="spinner-border" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <p class="mt-2">Loading recent documents...</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', async function() {
+    await loadDashboardData();
+    await loadRecentDocuments();
+});
+
+async function loadDashboardData() {
+    try {
+        const token = localStorage.getItem('access_token');
+        const response = await fetch('/rag/statistics', {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+        
+        if (response.ok) {
+            const data = await response.json();
+            
+            // Update statistics
+            document.getElementById('totalDocuments').textContent = data.document_statistics.total_documents;
+            document.getElementById('processedDocuments').textContent = data.document_statistics.processed_documents;
+            document.getElementById('totalChunks').textContent = data.document_statistics.total_chunks;
+            document.getElementById('totalQueries').textContent = data.total_queries;
+            
+            // Update processing progress
+            const processed = data.document_statistics.processed_documents;
+            const total = data.document_statistics.total_documents;
+            if (total > 0) {
+                const percentage = Math.round((processed / total) * 100);
+                const progressBar = document.getElementById('processingProgress');
+                progressBar.style.width = percentage + '%';
+                progressBar.textContent = `${processed}/${total} Processed`;
+            }
+        }
+    } catch (error) {
+        console.error('Error loading dashboard data:', error);
+    }
+}
+
+async function loadRecentDocuments() {
+    try {
+        const token = localStorage.getItem('access_token');
+        const response = await fetch('/files/documents', {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+        
+        if (response.ok) {
+            const documents = await response.json();
+            const container = document.getElementById('recentDocuments');
+            
+            if (documents.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-4">
+                        <i class="bi bi-files fs-1 text-muted"></i>
+                        <p class="text-muted">No documents uploaded yet.</p>
+                        <a href="/files/upload" class="btn btn-primary">Upload Your First Document</a>
+                    </div>
+                `;
+                return;
+            }
+            
+            const recentDocs = documents.slice(0, 5); // Show only 5 most recent
+            container.innerHTML = recentDocs.map(doc => `
+                <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                    <div class="d-flex align-items-center">
+                        <i class="bi ${getFileIcon(doc.file_type)} text-primary me-2"></i>
+                        <div>
+                            <div class="fw-bold">${doc.original_filename}</div>
+                            <small class="text-muted">
+                                ${formatFileSize(doc.file_size)} • 
+                                ${new Date(doc.created_at).toLocaleDateString()}
+                            </small>
+                        </div>
+                    </div>
+                    <div class="text-end">
+                        <span class="badge ${doc.is_processed ? 'bg-success' : 'bg-warning'}">
+                            ${doc.is_processed ? 'Processed' : 'Processing'}
+                        </span>
+                        <div class="text-muted small">${doc.chunks_count || 0} chunks</div>
+                    </div>
+                </div>
+            `).join('');
+        }
+    } catch (error) {
+        console.error('Error loading recent documents:', error);
+        document.getElementById('recentDocuments').innerHTML = `
+            <div class="text-center py-4 text-danger">
+                <i class="bi bi-exclamation-triangle"></i>
+                <p>Error loading documents</p>
+            </div>
+        `;
+    }
+}
+
+function getFileIcon(fileType) {
+    if (fileType.includes('pdf')) return 'bi-file-pdf';
+    if (fileType.includes('word') || fileType.includes('document')) return 'bi-file-word';
+    if (fileType.includes('spreadsheet') || fileType.includes('excel')) return 'bi-file-spreadsheet';
+    if (fileType.includes('image')) return 'bi-file-image';
+    if (fileType.includes('text')) return 'bi-file-text';
+    return 'bi-file-earmark';
+}
+
+function formatFileSize(bytes) {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+}
+</script>
+{% endblock %}

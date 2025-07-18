@@ -1,0 +1,142 @@
+{% extends "base.html" %}
+
+{% block title %}Register - RAG Application{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6 col-lg-4">
+        <div class="card">
+            <div class="card-header text-center">
+                <h4><i class="bi bi-person-plus"></i> Register</h4>
+            </div>
+            <div class="card-body">
+                <form id="registerForm">
+                    <div class="mb-3">
+                        <label for="email" class="form-label">Email</label>
+                        <input type="email" class="form-control" id="email" name="email" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="username" class="form-label">Username</label>
+                        <input type="text" class="form-control" id="username" name="username" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="full_name" class="form-label">Full Name (Optional)</label>
+                        <input type="text" class="form-control" id="full_name" name="full_name">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="password" class="form-label">Password</label>
+                        <input type="password" class="form-control" id="password" name="password" required>
+                        <div class="form-text">Password should be at least 8 characters long.</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="confirmPassword" class="form-label">Confirm Password</label>
+                        <input type="password" class="form-control" id="confirmPassword" name="confirmPassword" required>
+                    </div>
+                    
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-person-plus"></i> Register
+                        </button>
+                    </div>
+                </form>
+                
+                <div id="errorMessage" class="alert alert-danger mt-3" style="display: none;"></div>
+                <div id="successMessage" class="alert alert-success mt-3" style="display: none;"></div>
+                <div id="loadingIndicator" class="text-center mt-3" style="display: none;">
+                    <div class="spinner-border spinner-border-sm" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    Registering...
+                </div>
+            </div>
+            
+            <div class="card-footer text-center">
+                <small>
+                    Already have an account? <a href="/auth/login">Login here</a>
+                </small>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.getElementById('registerForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const loadingIndicator = document.getElementById('loadingIndicator');
+    const errorMessage = document.getElementById('errorMessage');
+    const successMessage = document.getElementById('successMessage');
+    const submitBtn = this.querySelector('button[type="submit"]');
+    
+    // Hide previous messages
+    errorMessage.style.display = 'none';
+    successMessage.style.display = 'none';
+    
+    const formData = new FormData(this);
+    const password = formData.get('password');
+    const confirmPassword = formData.get('confirmPassword');
+    
+    // Validate password match
+    if (password !== confirmPassword) {
+        errorMessage.textContent = 'Passwords do not match';
+        errorMessage.style.display = 'block';
+        return;
+    }
+    
+    // Validate password length
+    if (password.length < 8) {
+        errorMessage.textContent = 'Password must be at least 8 characters long';
+        errorMessage.style.display = 'block';
+        return;
+    }
+    
+    // Show loading state
+    loadingIndicator.style.display = 'block';
+    submitBtn.disabled = true;
+    
+    const registerData = {
+        email: formData.get('email'),
+        username: formData.get('username'),
+        full_name: formData.get('full_name') || null,
+        password: password
+    };
+    
+    try {
+        const response = await fetch('/auth/register', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(registerData)
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+            successMessage.textContent = 'Registration successful! You can now login.';
+            successMessage.style.display = 'block';
+            this.reset();
+            
+            // Redirect to login after 2 seconds
+            setTimeout(() => {
+                window.location.href = '/auth/login';
+            }, 2000);
+        } else {
+            throw new Error(data.detail || 'Registration failed');
+        }
+    } catch (error) {
+        errorMessage.textContent = error.message;
+        errorMessage.style.display = 'block';
+    } finally {
+        loadingIndicator.style.display = 'none';
+        submitBtn.disabled = false;
+    }
+});
+</script>
+{% endblock %}

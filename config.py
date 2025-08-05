@@ -1,28 +1,42 @@
 import os
-from dotenv import load_dotenv
+from typing import Optional
+from pydantic_settings import BaseSettings
 
-load_dotenv()
-
-class Config:
-    # Flask Configuration
-    SECRET_KEY = os.environ.get('SECRET_KEY') or 'dev-secret-key-change-in-production'
+class Settings(BaseSettings):
+    # App Configuration
+    app_name: str = "RAG Document Assistant"
+    debug: bool = False
     
-    # Database Configuration
-    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or 'sqlite:///rag_app.db'
-    SQLALCHEMY_TRACK_MODIFICATIONS = False
+    # Security
+    secret_key: str = "your-secret-key-change-in-production"
+    access_token_expire_minutes: int = 30
+    algorithm: str = "HS256"
+    
+    # Database Configuration - PostgreSQL
+    database_url: str = "postgresql+asyncpg://postgres:password@localhost:5432/rag_db"
     
     # File Upload Configuration
-    UPLOAD_FOLDER = 'uploads'
-    MAX_CONTENT_LENGTH = 50 * 1024 * 1024  # 50MB max file size
-    ALLOWED_EXTENSIONS = {'txt', 'pdf', 'docx', 'json'}
+    upload_folder: str = "uploads"
+    max_file_size: int = 50 * 1024 * 1024  # 50MB
+    allowed_extensions: set = {"txt", "pdf", "docx", "json"}
     
     # Weaviate Configuration
-    WEAVIATE_URL = os.environ.get('WEAVIATE_URL') or 'http://localhost:8080'
+    weaviate_url: str = "http://localhost:8080"
     
-    # OpenAI Configuration (optional, for better embeddings)
-    OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY')
+    # OpenAI Configuration (optional)
+    openai_api_key: Optional[str] = None
     
     # RAG Configuration
-    CHUNK_SIZE = 1000
-    CHUNK_OVERLAP = 200
-    MAX_RETRIEVAL_RESULTS = 5
+    chunk_size: int = 1000
+    chunk_overlap: int = 200
+    max_retrieval_results: int = 5
+    
+    # CORS Configuration
+    cors_origins: list = ["http://localhost:3000", "http://localhost:8000"]
+    
+    class Config:
+        env_file = ".env"
+        case_sensitive = False
+
+# Create settings instance
+settings = Settings()

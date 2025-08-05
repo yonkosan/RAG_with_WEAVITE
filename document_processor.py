@@ -77,8 +77,8 @@ class DocumentProcessor:
     
     def chunk_text(self, text: str, chunk_size: int = None, overlap: int = None) -> List[str]:
         """Split text into chunks for embedding."""
-        chunk_size = chunk_size or self.config.CHUNK_SIZE
-        overlap = overlap or self.config.CHUNK_OVERLAP
+        chunk_size = chunk_size or self.config.chunk_size
+        overlap = overlap or self.config.chunk_overlap
         
         if len(text) <= chunk_size:
             return [text]
@@ -155,7 +155,7 @@ class DocumentProcessor:
         except Exception as e:
             raise Exception(f"Error creating collection: {str(e)}")
     
-    def process_and_store_document(self, file_path: str, document_record: Any) -> int:
+    async def process_and_store_document(self, file_path: str, document_record: Any) -> int:
         """Process document and store chunks in Weaviate."""
         try:
             # Parse document
@@ -204,7 +204,7 @@ class DocumentProcessor:
     
     def search_documents(self, query: str, user_id: int, limit: int = None) -> List[Dict[str, Any]]:
         """Search for relevant document chunks based on query."""
-        limit = limit or self.config.MAX_RETRIEVAL_RESULTS
+        limit = limit or self.config.max_retrieval_results
         
         try:
             collection_name = f"UserDocuments_{user_id}"
@@ -266,3 +266,18 @@ class DocumentProcessor:
                 )
         except Exception as e:
             print(f"Error deleting document chunks: {str(e)}")
+
+# Initialize global document processor
+def get_document_processor():
+    """Get document processor instance"""
+    from config import settings
+    import weaviate
+    
+    try:
+        client = weaviate.connect_to_local(
+            host=settings.weaviate_url.replace("http://", "").replace("https://", "")
+        )
+        return DocumentProcessor(client, settings)
+    except Exception as e:
+        print(f"Error connecting to Weaviate: {e}")
+        return None

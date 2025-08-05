@@ -1,44 +1,90 @@
-from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, SubmitField, TextAreaField
-from wtforms.validators import DataRequired, Email, Length, EqualTo
-from wtforms.fields import FileField
-from flask_wtf.file import FileAllowed, FileRequired
+from datetime import datetime, timedelta
+from typing import Optional
+from fastapi import Depends, HTTPException, status
+from fastapi.security import OAuth2PasswordBearer
+from jose import JWTError, jwt
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
+from database import get_db, User
+from schemas import TokenData
+from config import settings
 
-class LoginForm(FlaskForm):
-    username = StringField('Username', validators=[DataRequired(), Length(min=3, max=80)])
-    password = PasswordField('Password', validators=[DataRequired()])
-    submit = SubmitField('Login')
+# OAuth2 scheme
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
-class RegistrationForm(FlaskForm):
-    username = StringField('Username', validators=[
-        DataRequired(), 
-        Length(min=3, max=80)
-    ])
-    email = StringField('Email', validators=[
-        DataRequired(), 
-        Email(),
-        Length(max=120)
-    ])
-    password = PasswordField('Password', validators=[
-        DataRequired(),
-        Length(min=6)
-    ])
-    password2 = PasswordField('Confirm Password', validators=[
-        DataRequired(),
-        EqualTo('password', message='Passwords must match')
-    ])
-    submit = SubmitField('Register')
+def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
+    """Create JWT access token"""
+    to_encode = data.copy()
+    if expires_delta:
+        expire = datetime.utcnow() + expires_delta
+    else:
+        expire = datetime.utcnow() + timedelta(minutes=settings.access_token_expire_minutes)
+    
+    to_encode.update({"exp": expire})
+    encoded_jwt = jwt.encode(to_encode, settings.secret_key, algorithm=settings.algorithm)
+    return encoded_jwt
 
-class DocumentUploadForm(FlaskForm):
-    file = FileField('Document', validators=[
-        FileRequired(),
-        FileAllowed(['txt', 'pdf', 'docx', 'json'], 'Only TXT, PDF, DOCX, and JSON files are allowed!')
-    ])
-    submit = SubmitField('Upload Document')
+async def get_current_user(token: str = Depends(oauth2_scheme), db: AsyncSession = Depends(get_db)):
+    """Get current authenticated user"""
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Could not validate credentials",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+    
+    try:
+        payload = jwt.decode(token, settings.secret_key, algorithms=[settings.algorithm])
+        username: str = payload.get("sub")
+        if username is None:
+            raise credentials_exception
+        token_data = TokenData(username=username)
+    except JWTError:
+        raise credentials_exception
+    
+    # Get user from database
+    result = await db.execute(select(User).filter(User.username == token_data.username))
+    user = result.scalar_one_or_none()
+    
+    if user is None:
+        raise credentials_exception
+    return user
 
-class QueryForm(FlaskForm):
-    query = TextAreaField('Your Question', validators=[
-        DataRequired(),
-        Length(min=5, max=1000)
-    ], render_kw={'rows': 3, 'placeholder': 'Ask a question about your documents...'})
-    submit = SubmitField('Ask Question')
+async def get_current_active_user(current_user: User = Depends(get_current_user)):
+    """Get current active user"""
+    if not current_user.is_active:
+        raise HTTPException(status_code=400, detail="Inactive user")
+    return current_user
+
+async def authenticate_user(db: AsyncSession, username: str, password: str) -> Optional[User]:
+    """Authenticate user credentials"""
+    result = await db.execute(select(User).filter(User.username == username))
+    user = result.scalar_one_or_none()
+    
+    if not user:
+        return None
+    if not user.verify_password(password):
+        return None
+    return user
+
+async def get_user_by_username(db: AsyncSession, username: str) -> Optional[User]:
+    """Get user by username"""
+    result = await db.execute(select(User).filter(User.username == username))
+    return result.scalar_one_or_none()
+
+async def get_user_by_email(db: AsyncSession, email: str) -> Optional[User]:
+    """Get user by email"""
+    result = await db.execute(select(User).filter(User.email == email))
+    return result.scalar_one_or_none()
+
+async def create_user(db: AsyncSession, username: str, email: str, password: str) -> User:
+    """Create new user"""
+    hashed_password = User.get_password_hash(password)
+    db_user = User(
+        username=username,
+        email=email,
+        hashed_password=hashed_password
+    )
+    db.add(db_user)
+    await db.commit()
+    await db.refresh(db_user)
+    return db_user

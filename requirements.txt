@@ -1,16 +1,21 @@
-# Core Flask dependencies
-flask==3.0.0
-werkzeug==3.0.1
+# Core FastAPI dependencies
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+python-multipart==0.0.6
 
 # Authentication and Security
-flask-login==0.6.3
-flask-bcrypt==1.0.1
-flask-wtf==1.2.1
-wtforms==3.1.1
+python-jose[cryptography]==3.3.0
+passlib[bcrypt]==1.7.4
+python-multipart==0.0.6
 
-# Database
-flask-sqlalchemy==3.1.1
-flask-migrate==4.0.7
+# Database - PostgreSQL
+sqlalchemy==2.0.23
+asyncpg==0.29.0
+alembic==1.13.1
+
+# Pydantic for data validation
+pydantic==2.5.2
+pydantic-settings==2.1.0
 
 # Vector Database
 weaviate-client==4.5.4
@@ -29,6 +34,8 @@ torch==2.1.2
 # Utilities
 python-dotenv==1.0.0
 requests==2.31.0
+aiofiles==23.2.0
 
 # Development
-python-multipart==0.0.6
+pytest==7.4.3
+pytest-asyncio==0.21.1

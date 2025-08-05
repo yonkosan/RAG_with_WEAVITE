@@ -1,0 +1,238 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - RAG Document Assistant{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">
+        <i class="fas fa-tachometer-alt me-2"></i>Dashboard
+    </h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <div class="btn-group me-2">
+            <a href="{{ url_for('upload') }}" class="btn btn-primary">
+                <i class="fas fa-upload me-1"></i>Upload Document
+            </a>
+            <a href="{{ url_for('query') }}" class="btn btn-outline-primary">
+                <i class="fas fa-search me-1"></i>Ask Question
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Statistics Cards -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card text-white bg-primary">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h5 class="card-title">{{ stats.total_documents }}</h5>
+                        <p class="card-text">Total Documents</p>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-file-alt fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card text-white bg-success">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h5 class="card-title">{{ stats.processed_documents }}</h5>
+                        <p class="card-text">Processed</p>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-check-circle fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card text-white bg-info">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h5 class="card-title">{{ stats.total_queries }}</h5>
+                        <p class="card-text">Total Queries</p>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-question-circle fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card text-white bg-warning">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h5 class="card-title">{{ stats.total_chunks }}</h5>
+                        <p class="card-text">Text Chunks</p>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-puzzle-piece fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Recent Documents -->
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="fas fa-file-alt me-2"></i>Recent Documents
+                </h5>
+                <a href="{{ url_for('documents') }}" class="btn btn-sm btn-outline-primary">View All</a>
+            </div>
+            <div class="card-body">
+                {% if recent_documents %}
+                    {% for doc in recent_documents %}
+                    <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                        <div>
+                            <h6 class="mb-1">{{ doc.original_filename }}</h6>
+                            <small class="text-muted">
+                                <i class="fas fa-calendar me-1"></i>{{ doc.upload_date.strftime('%Y-%m-%d %H:%M') }}
+                                {% if doc.processed %}
+                                    <span class="badge bg-success ms-2">Processed</span>
+                                {% else %}
+                                    <span class="badge bg-warning ms-2">Processing</span>
+                                {% endif %}
+                            </small>
+                        </div>
+                        <div>
+                            <span class="badge bg-secondary">{{ doc.file_type.upper() }}</span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="text-muted text-center py-3">
+                        <i class="fas fa-inbox fa-3x mb-3 d-block"></i>
+                        No documents uploaded yet. 
+                        <a href="{{ url_for('upload') }}" class="text-primary">Upload your first document</a>
+                    </p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Recent Queries -->
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="fas fa-history me-2"></i>Recent Queries
+                </h5>
+                <a href="{{ url_for('history') }}" class="btn btn-sm btn-outline-primary">View All</a>
+            </div>
+            <div class="card-body">
+                {% if recent_queries %}
+                    {% for query in recent_queries %}
+                    <div class="d-flex justify-content-between align-items-start py-2 border-bottom">
+                        <div style="flex: 1;">
+                            <h6 class="mb-1">{{ query.query_text[:50] }}{% if query.query_text|length > 50 %}...{% endif %}</h6>
+                            <small class="text-muted">
+                                <i class="fas fa-clock me-1"></i>{{ query.timestamp.strftime('%Y-%m-%d %H:%M') }}
+                                {% if query.processing_time %}
+                                    <span class="ms-2">{{ "%.2f"|format(query.processing_time) }}s</span>
+                                {% endif %}
+                            </small>
+                        </div>
+                        <div>
+                            {% if query.confidence_score %}
+                                {% set confidence_class = 'success' if query.confidence_score > 0.7 else 'warning' if query.confidence_score > 0.4 else 'danger' %}
+                                <span class="badge bg-{{ confidence_class }}">{{ "%.0f"|format(query.confidence_score * 100) }}%</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="text-muted text-center py-3">
+                        <i class="fas fa-search fa-3x mb-3 d-block"></i>
+                        No queries yet. 
+                        <a href="{{ url_for('query') }}" class="text-primary">Ask your first question</a>
+                    </p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-bolt me-2"></i>Quick Actions
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-md-3">
+                        <a href="{{ url_for('upload') }}" class="btn btn-outline-primary btn-lg w-100 h-100 d-flex flex-column justify-content-center">
+                            <i class="fas fa-upload fa-2x mb-2"></i>
+                            <span>Upload Document</span>
+                        </a>
+                    </div>
+                    <div class="col-md-3">
+                        <a href="{{ url_for('query') }}" class="btn btn-outline-success btn-lg w-100 h-100 d-flex flex-column justify-content-center">
+                            <i class="fas fa-search fa-2x mb-2"></i>
+                            <span>Ask Question</span>
+                        </a>
+                    </div>
+                    <div class="col-md-3">
+                        <a href="{{ url_for('documents') }}" class="btn btn-outline-info btn-lg w-100 h-100 d-flex flex-column justify-content-center">
+                            <i class="fas fa-file-alt fa-2x mb-2"></i>
+                            <span>Manage Documents</span>
+                        </a>
+                    </div>
+                    <div class="col-md-3">
+                        <a href="{{ url_for('history') }}" class="btn btn-outline-warning btn-lg w-100 h-100 d-flex flex-column justify-content-center">
+                            <i class="fas fa-history fa-2x mb-2"></i>
+                            <span>Query History</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if suggestions %}
+<!-- Query Suggestions -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-lightbulb me-2"></i>Suggested Questions
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    {% for suggestion in suggestions %}
+                    <div class="col-md-6 mb-2">
+                        <a href="{{ url_for('query', q=suggestion) }}" class="btn btn-outline-secondary w-100 text-start">
+                            <i class="fas fa-question-circle me-2"></i>{{ suggestion }}
+                        </a>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

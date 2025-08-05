@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+
+{% block title %}Welcome - RAG Document Assistant{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- Hero Section -->
+            <div class="text-center py-5">
+                <h1 class="display-4 fw-bold text-primary mb-4">
+                    <i class="fas fa-robot me-3"></i>RAG Document Assistant
+                </h1>
+                <p class="lead mb-4">
+                    Upload your documents and ask intelligent questions. Our AI-powered system will help you find answers from your personal document library.
+                </p>
+                <div class="d-grid gap-2 d-md-flex justify-content-md-center">
+                    <a href="{{ url_for('register') }}" class="btn btn-primary btn-lg me-md-2">
+                        <i class="fas fa-user-plus me-2"></i>Get Started
+                    </a>
+                    <a href="{{ url_for('login') }}" class="btn btn-outline-primary btn-lg">
+                        <i class="fas fa-sign-in-alt me-2"></i>Sign In
+                    </a>
+                </div>
+            </div>
+
+            <!-- Features Section -->
+            <div class="row g-4 py-5">
+                <div class="col-md-6">
+                    <div class="card h-100 border-0 shadow-sm">
+                        <div class="card-body text-center">
+                            <div class="text-primary mb-3">
+                                <i class="fas fa-upload fa-3x"></i>
+                            </div>
+                            <h5 class="card-title">Multiple File Types</h5>
+                            <p class="card-text">
+                                Upload PDF, DOCX, TXT, and JSON files. Our system automatically processes and indexes your documents for intelligent search.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-6">
+                    <div class="card h-100 border-0 shadow-sm">
+                        <div class="card-body text-center">
+                            <div class="text-primary mb-3">
+                                <i class="fas fa-search fa-3x"></i>
+                            </div>
+                            <h5 class="card-title">Intelligent Search</h5>
+                            <p class="card-text">
+                                Ask questions in natural language and get relevant answers from your documents using advanced vector search technology.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-6">
+                    <div class="card h-100 border-0 shadow-sm">
+                        <div class="card-body text-center">
+                            <div class="text-primary mb-3">
+                                <i class="fas fa-shield-alt fa-3x"></i>
+                            </div>
+                            <h5 class="card-title">Secure & Private</h5>
+                            <p class="card-text">
+                                Your documents are private and secure. Each user has their own isolated document space with authentication protection.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-6">
+                    <div class="card h-100 border-0 shadow-sm">
+                        <div class="card-body text-center">
+                            <div class="text-primary mb-3">
+                                <i class="fas fa-brain fa-3x"></i>
+                            </div>
+                            <h5 class="card-title">AI-Powered Responses</h5>
+                            <p class="card-text">
+                                Get contextual answers powered by retrieval-augmented generation (RAG) technology that understands your documents.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- How it Works -->
+            <div class="py-5">
+                <h2 class="text-center mb-5">How It Works</h2>
+                <div class="row">
+                    <div class="col-md-4 text-center">
+                        <div class="text-primary mb-3">
+                            <i class="fas fa-file-upload fa-2x"></i>
+                        </div>
+                        <h5>1. Upload Documents</h5>
+                        <p class="text-muted">Upload your PDF, DOCX, TXT, or JSON files to build your personal knowledge base.</p>
+                    </div>
+                    <div class="col-md-4 text-center">
+                        <div class="text-primary mb-3">
+                            <i class="fas fa-question-circle fa-2x"></i>
+                        </div>
+                        <h5>2. Ask Questions</h5>
+                        <p class="text-muted">Type your questions in natural language about the content in your documents.</p>
+                    </div>
+                    <div class="col-md-4 text-center">
+                        <div class="text-primary mb-3">
+                            <i class="fas fa-lightbulb fa-2x"></i>
+                        </div>
+                        <h5>3. Get Answers</h5>
+                        <p class="text-muted">Receive intelligent responses with citations from your relevant documents.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
